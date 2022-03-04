@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/fatih/set v0.2.1
+	github.com/relvacode/iso8601 v1.1.0
 )
 
 require (

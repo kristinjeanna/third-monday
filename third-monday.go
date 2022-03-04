@@ -3,13 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/alecthomas/kingpin"
-	e "github.com/kristinjeanna/third-monday/errors"
 	"github.com/kristinjeanna/third-monday/occurrences"
+	"github.com/relvacode/iso8601"
 )
 
 const (
@@ -24,7 +22,7 @@ var (
 	yearMode = app.Flag("year", "Enable year mode. If false, mode is month.").Short('y').Bool()
 	dateText = app.Flag("date", "Date to check against, in YYYY-MM-DD format. If not specified, current local date is used.").Short('d').String()
 
-	check         = app.Command("check", "Check a date against an occurrence specification.")
+	check         = app.Command("check", "Check a date against an occurrence specification. Returns exit code 0 if the check succeeds (i.e., the specification matches today's date) and exit code 1 if it fails.")
 	specification = check.Arg("specification", "The occurrence specification to check. Examples: The second Monday would be specified as \"2#1\". The first and third Wednesdays would be \"1,3#3\". The second Tuesday and Thursday would be \"2#2,4\" The first and third Sunday and Friday would be \"1,3#0,5\".").Required().String()
 
 	info = app.Command("info", "Prints information about a date.")
@@ -36,37 +34,10 @@ func init() {
 	app.UsageTemplate(CustomUsageTemplate)
 }
 
-func parseIso8601Date(value string) (time.Time, error) {
-	re := regexp.MustCompile(`^([0-9]{4})-([0-9]{2})-([0-9]{2})$`)
-
-	matches := re.FindStringSubmatch(value)
-	if len(matches) == 0 {
-		return time.Time{}, fmt.Errorf(e.Messages[e.Err1004], value)
-	}
-
-	year, err := strconv.Atoi(matches[1])
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	month, err := strconv.Atoi(matches[2])
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	day, err := strconv.Atoi(matches[3])
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-	return t, nil
-}
-
 func getDate() (date time.Time) {
 	f := func() time.Time {
 		if *dateText != "" {
-			d, err := parseIso8601Date(*dateText)
+			d, err := iso8601.ParseString(*dateText)
 			if err != nil {
 				app.Errorf("%v", err)
 				os.Exit(101)
