@@ -99,6 +99,11 @@ func (t Data) Intersects(other *Data) bool {
 	return oIntersect && dIntersect
 }
 
+func Validate(specification string) bool {
+	re := regexp.MustCompile(`^\d(,\d)*\#\d(,\d)*$`)
+	return re.MatchString(specification)
+}
+
 // New creates a new occurrence data instance.
 func New(specification string) (*Data, error) {
 	parts := strings.Split(specification, "#")
