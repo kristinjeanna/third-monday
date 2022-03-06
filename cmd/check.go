@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	occurrences "github.com/kristinjeanna/third-monday/spec"
+	"github.com/kristinjeanna/third-monday/spec"
 	"github.com/kristinjeanna/third-monday/util"
 	"github.com/relvacode/iso8601"
 	"github.com/spf13/cobra"
@@ -29,14 +29,14 @@ Examples: The second Monday would be specified as "2#1". The first and third Wed
 		if len(args) != 1 {
 			return fmt.Errorf("accepts %d arg(s), received %d", 1, len(args))
 		}
-		return occurrences.Validate(args[0], UseYearMode)
+		return spec.Validate(args[0], UseYearMode)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		date := getDate(Date)
-		data1 := occurrences.NewFromDate(date, UseYearMode)
+		data1 := spec.NewFromDate(date, UseYearMode)
 		util.PrintDateInfo(Verbose, UseYearMode, date, *data1)
 
-		data2, err := occurrences.New(args[0])
+		data2, err := spec.New(args[0])
 		if err != nil {
 			log.Printf("%v", err)
 			os.Exit(100)
