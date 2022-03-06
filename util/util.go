@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kristinjeanna/third-monday/occurrences"
+	occurrences "github.com/kristinjeanna/third-monday/spec"
 )
 
 const (

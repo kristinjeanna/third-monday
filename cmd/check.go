@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/kristinjeanna/third-monday/occurrences"
+	occurrences "github.com/kristinjeanna/third-monday/spec"
 	"github.com/kristinjeanna/third-monday/util"
 	"github.com/relvacode/iso8601"
 	"github.com/spf13/cobra"
