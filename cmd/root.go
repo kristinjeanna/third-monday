@@ -6,19 +6,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Verbose bool
-
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "third-monday",
-	Short: "A tool to facilitate working with relative dates such as \"third Monday of the month\", \"tenth Wednesday of the year\", etc.",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-}
+var (
+	// rootCmd represents the base command when called without any subcommands
+	rootCmd = &cobra.Command{
+		Use:   "third-monday",
+		Short: "A tool to facilitate working with relative dates such as \"third Monday of the month\", \"tenth Wednesday of the year\", etc.",
+		Long:  `A tool to facilitate working with relative dates such as \"third Monday of the month\", \"tenth Wednesday of the year\", etc.`,
+	}
+)
 
 func Execute() {
 	err := rootCmd.Execute()

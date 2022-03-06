@@ -170,9 +170,9 @@ func New(specification string) (*Specification, error) {
 
 // NewFromDate creates a new occurrence data instance
 // from the provided date.
-func NewFromDate(date time.Time, forYear bool) *Specification {
+func NewFromDate(date time.Time, yearMode bool) *Specification {
 	day := date.Day()
-	if forYear {
+	if yearMode {
 		day = date.YearDay()
 	}
 
