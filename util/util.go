@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	occurrences "github.com/kristinjeanna/third-monday/spec"
+	"github.com/kristinjeanna/third-monday/spec"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 	indentedFormat2 string = "    %s\n"
 )
 
-func PrintDateInfo(isVerbose, yearMode bool, date time.Time, spec occurrences.Data) {
+func PrintDateInfo(isVerbose, yearMode bool, date time.Time, spec spec.Specification) {
 	if !isVerbose {
 		return
 	}
@@ -26,12 +26,12 @@ func PrintDateInfo(isVerbose, yearMode bool, date time.Time, spec occurrences.Da
 	}
 }
 
-func PrintSpecInfo(isVerbose, yearMode bool, spec occurrences.Data) {
+func PrintSpecInfo(isVerbose, yearMode bool, spec spec.Specification) {
 	if !isVerbose {
 		return
 	}
 
-	fmt.Printf("Matching against specification: \"%s\"\n", spec.Specification())
+	fmt.Printf("Matching against specification: \"%s\"\n", spec)
 	for _, s := range spec.FriendlyStrings(yearMode) {
 		fmt.Printf(indentedFormat1, s)
 	}
