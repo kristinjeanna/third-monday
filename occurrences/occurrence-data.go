@@ -13,6 +13,19 @@ import (
 	e "github.com/kristinjeanna/third-monday/errors"
 )
 
+const (
+	regexMonthMode string = `^\d(,\d)*\#\d(,\d)*$`
+	regexYearMode  string = `^\d{1,2}(,\d{1,2})*\#\d(,\d)*$`
+)
+
+func getRegex(yearMode bool) string {
+	if yearMode {
+		return regexYearMode
+	} else {
+		return regexMonthMode
+	}
+}
+
 var (
 	suffixes = map[string]string{
 		"0": "th",
@@ -99,27 +112,52 @@ func (t Data) Intersects(other *Data) bool {
 	return oIntersect && dIntersect
 }
 
-func Validate(specification string) bool {
-	re := regexp.MustCompile(`^\d(,\d)*\#\d(,\d)*$`)
-	return re.MatchString(specification)
+func Validate(specification string, yearMode bool) error {
+	re := regexp.MustCompile(getRegex(yearMode))
+	if !re.MatchString(specification) {
+		return &e.SpecificationError{Specification: specification}
+	}
+
+	parts := strings.Split(specification, "#")
+
+	occurrences, err := toIntSet(strings.Split(parts[0], ","))
+	if err != nil {
+		return err
+	}
+
+	for _, ordinal := range set.IntSlice(occurrences) {
+		if ordinal < 1 {
+			return &e.OrdinalError{Type: e.Occurrence, UseYearMode: yearMode, Ordinal: ordinal}
+		}
+
+		if yearMode {
+			if ordinal > 53 { // some years can have a 53rd occurrence of a day of week
+				return &e.OrdinalError{Type: e.Occurrence, UseYearMode: yearMode, Ordinal: ordinal}
+			}
+		} else {
+			if ordinal > 5 { // usually 4 occurrences of a day of week in a month, sometimes also 5
+				return &e.OrdinalError{Type: e.Occurrence, UseYearMode: yearMode, Ordinal: ordinal}
+			}
+		}
+	}
+
+	daysOfWeek, err := toIntSet(strings.Split(parts[1], ","))
+	if err != nil {
+		return err
+	}
+
+	for _, ordinal := range set.IntSlice(daysOfWeek) {
+		if ordinal > 6 {
+			return &e.OrdinalError{Type: e.DayOfWeek, UseYearMode: yearMode, Ordinal: ordinal}
+		}
+	}
+
+	return nil
 }
 
 // New creates a new occurrence data instance.
 func New(specification string) (*Data, error) {
 	parts := strings.Split(specification, "#")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf(e.Messages[e.Err1000])
-	}
-
-	re := regexp.MustCompile(`^[\d,]+$`)
-
-	if match := re.MatchString(parts[0]); !match {
-		return nil, fmt.Errorf(e.Messages[e.Err1001], parts[0])
-	}
-
-	if match := re.MatchString(parts[1]); !match {
-		return nil, fmt.Errorf(e.Messages[e.Err1002], parts[1])
-	}
 
 	occurrences, err := toIntSet(strings.Split(parts[0], ","))
 	if err != nil {
@@ -183,7 +221,7 @@ func toWeekdaySet(values []string) (set.Interface, error) {
 		if intValue >= 0 && intValue < 7 {
 			weekdaySet.Add(time.Weekday(intValue))
 		} else {
-			return nil, fmt.Errorf(e.Messages[e.Err1003], intValue)
+			return nil, &e.OrdinalError{Type: e.DayOfWeek, UseYearMode: false, Ordinal: intValue}
 		}
 	}
 	return weekdaySet, nil

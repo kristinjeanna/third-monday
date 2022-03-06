@@ -20,35 +20,43 @@ var (
 	checkCmd = &cobra.Command{
 		Use:   "check [flags] specification",
 		Short: "Check a date against an occurrence specification. Returns exit code 0 if the check succeeds (i.e., the specification matches today's date) and exit code 1 if it fails.",
-		Long: `A longer description that spans multiple lines and likely contains examples
-	and usage of using your command. For example:
-	
-	Cobra is a CLI library for Go that empowers applications.
-	This application is a tool to generate the needed files
-	to quickly create a Cobra application.`,
-		Args: cobra.ExactArgs(1),
+		Long: `Check a date against an occurrence specification. Returns exit code 0 if the check succeeds (i.e., the specification matches today's date) and exit code 1 if it fails.
+
+	One positional argument is required which specifies the occurrence specification to use in the check operation. This argument follows the format of one or more occurrence ordinals (comma-separated), a "#" symbol, followed by one or more day of week ordinals (comma-separated).
+
+	In month mode (default), occurrence ordinals must be greater than or equal to 0 and less than or equal to 5. In year mode, occurrence ordinals must be greater than or equal to 0 and less than or equal to 53.
+
+	Day of week ordinals must be greater than or equal to 0 (Sunday) and less than or equal to 6 (Saturday).
+
+	Examples: The second Monday would be specified as "2#1". The first and third Wednesdays would be "1,3#3". The second Tuesday and Thursday would be "2#2,4" The first and third Sunday and Friday would be "1,3#0,5". In year mode, the 42nd Friday of the year would be specified by "42#5.`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("accepts %d arg(s), received %d", 1, len(args))
+			}
+			return occurrences.Validate(args[0], UseYearMode)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
-			data1 := occurrences.NewFromDate(getDate(Date), UseYearMode)
+			date := getDate(Date)
+			data1 := occurrences.NewFromDate(date, UseYearMode)
+			util.PrintDateInfo(Verbose, UseYearMode, date, *data1)
 
 			data2, err := occurrences.New(args[0])
 			if err != nil {
 				log.Printf("%v", err)
 				os.Exit(100)
 			}
-			util.PrintMsg(Verbose, UseYearMode, *data2, fmt.Sprintf("specification: %s", data2.Specification()))
+			util.PrintSpecInfo(Verbose, UseYearMode, *data2)
 
 			if data1.Intersects(data2) {
-				util.PrintMsg(Verbose, UseYearMode, "Date matched the specification. Exit code 0.", "")
+				util.PrintMsg(Verbose, "Date matches the specification. Exit code 0.")
 				os.Exit(0)
 			} else {
-				util.PrintMsg(Verbose, UseYearMode, "Date did not match the specification. Exit code 1.", "")
+				util.PrintMsg(Verbose, "Date does not match the specification. Exit code 1.")
 				os.Exit(1)
 			}
 		},
 	}
 )
-
-//"specification", "The occurrence specification to check. Examples: The second Monday would be specified as \"2#1\". The first and third Wednesdays would be \"1,3#3\". The second Tuesday and Thursday would be \"2#2,4\" The first and third Sunday and Friday would be \"1,3#0,5\"."
 
 func init() {
 	rootCmd.AddCommand(checkCmd)
@@ -56,7 +64,7 @@ func init() {
 	checkCmd.Flags().BoolVarP(&UseYearMode, "year", "y", false,
 		"Enable year mode. When false (default), month mode is active.")
 
-	checkCmd.Flags().StringVarP(&Date, "date", "d", time.Now().Format("2022-03-05"),
+	checkCmd.Flags().StringVarP(&Date, "date", "d", time.Now().Format("2006-01-02"),
 		"Date to check against, in YYYY-MM-DD format. If not specified, current local date is used.")
 }
 
@@ -68,8 +76,8 @@ func getDate(dateString string) (date time.Time) {
 			os.Exit(101)
 		}
 		date = d
+	} else {
+		date = time.Now()
 	}
-	date = time.Now()
-	util.PrintMsg(Verbose, UseYearMode, date, "")
 	return
 }

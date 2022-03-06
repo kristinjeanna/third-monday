@@ -1,21 +1,36 @@
 package errors
 
-type Code int
+import "fmt"
+
+type SpecificationError struct {
+	Specification string
+}
+
+func (e *SpecificationError) Error() string {
+	return fmt.Sprintf("invalid specification: wrong format: %s", e.Specification)
+}
+
+type OrdinalType int
 
 const (
-	Err1000 Code = iota + 1000
-	Err1001
-	Err1002
-	Err1003
-	Err1004
+	Occurrence OrdinalType = iota
+	DayOfWeek
 )
 
-var (
-	Messages = map[Code]string{
-		Err1000: "invalid specification: wrong format.",
-		Err1001: "invalid specification: illegal characters in occurrences portion = \"%s\".",
-		Err1002: "invalid specification: illegal characters in day of week portion = \"%s\".",
-		Err1003: "invalid weekday ordinal = \"%d\".",
-		Err1004: "invalid ISO-8601 date string = \"%s\". Use \"YYYY-MM-DD\" format.",
+type OrdinalError struct {
+	Ordinal     int
+	Type        OrdinalType
+	UseYearMode bool
+}
+
+func (e *OrdinalError) Error() string {
+	if e.Type == Occurrence {
+		if e.UseYearMode {
+			return fmt.Sprintf("invalid occurrence ordinal value in year mode: %d (allowed 1-53)", e.Ordinal)
+		} else {
+			return fmt.Sprintf("invalid occurrence ordinal value in month mode: %d (allowed 1-5)", e.Ordinal)
+		}
+	} else {
+		return fmt.Sprintf("invalid day of week ordinal value: %d (allowed 0-6)", e.Ordinal)
 	}
-)
+}

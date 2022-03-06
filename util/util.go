@@ -8,34 +8,39 @@ import (
 )
 
 const (
-	dateFormat     string = "Mon, 02 Jan 2006"
-	indentedFormat string = "    %s\n"
+	dateFormat      string = "Mon, 02 Jan 2006"
+	indentedFormat1 string = "  %s\n"
+	indentedFormat2 string = "    %s\n"
 )
 
-func PrintMsg(isVerbose, yearMode bool, value interface{}, extra string) {
+func PrintDateInfo(isVerbose, yearMode bool, date time.Time, spec occurrences.Data) {
 	if !isVerbose {
 		return
 	}
 
-	v1, ok := value.(time.Time)
-	if ok {
-		fmt.Println("Using date:")
-		fmt.Printf(indentedFormat, v1.Format(dateFormat))
+	fmt.Println("Using date:")
+	fmt.Printf(indentedFormat1, date.Format(dateFormat))
+	fmt.Printf(indentedFormat1, "This date is:")
+	for _, s := range spec.FriendlyStrings(yearMode) {
+		fmt.Printf(indentedFormat2, s)
+	}
+}
+
+func PrintSpecInfo(isVerbose, yearMode bool, spec occurrences.Data) {
+	if !isVerbose {
 		return
 	}
 
-	v2, ok := value.(occurrences.Data)
-	if ok {
-		fmt.Printf("Occurrences (from %s):\n", extra)
-		for _, s := range v2.FriendlyStrings(yearMode) {
-			fmt.Printf(indentedFormat, s)
-		}
+	fmt.Printf("Matching against specification: \"%s\"\n", spec.Specification())
+	for _, s := range spec.FriendlyStrings(yearMode) {
+		fmt.Printf(indentedFormat1, s)
+	}
+}
+
+func PrintMsg(isVerbose bool, msg string) {
+	if !isVerbose {
 		return
 	}
 
-	v3, ok := value.(string)
-	if ok {
-		fmt.Println(v3)
-		return
-	}
+	fmt.Println(msg)
 }
