@@ -3,13 +3,12 @@ module github.com/kristinjeanna/third-monday
 go 1.17
 
 require (
-	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/fatih/set v0.2.1
 	github.com/relvacode/iso8601 v1.1.0
+	github.com/spf13/cobra v1.3.0
 )
 
 require (
-	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
-	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 )

@@ -1,4 +1,4 @@
-package occurrences
+package spec
 
 import (
 	"fmt"
@@ -12,6 +12,19 @@ import (
 	"github.com/fatih/set"
 	e "github.com/kristinjeanna/third-monday/errors"
 )
+
+const (
+	regexMonthMode string = `^\d(,\d)*\#\d(,\d)*$`
+	regexYearMode  string = `^\d{1,2}(,\d{1,2})*\#\d(,\d)*$`
+)
+
+func getRegex(yearMode bool) string {
+	if yearMode {
+		return regexYearMode
+	} else {
+		return regexMonthMode
+	}
+}
 
 var (
 	suffixes = map[string]string{
@@ -29,17 +42,12 @@ var (
 )
 
 // Data contains occurrence information.
-type Data struct {
+type Specification struct {
 	Occurrences set.Interface
 	DaysOfWeek  set.Interface
 }
 
-// String returns a string representation of the type.
-func (t Data) String() string {
-	return fmt.Sprintf("Data{occurrences=%s, daysOfWeek=%s}", t.Occurrences, t.DaysOfWeek)
-}
-
-func (t Data) FriendlyStrings(yearMode bool) (results []string) {
+func (t Specification) FriendlyStrings(yearMode bool) (results []string) {
 	occurrences := set.IntSlice(t.Occurrences)
 	sort.Ints(occurrences)
 
@@ -60,7 +68,7 @@ func (t Data) FriendlyStrings(yearMode bool) (results []string) {
 }
 
 // Specification returns a string representation of the Occurrences structure.
-func (t Data) Specification() string {
+func (t Specification) String() string {
 	occurrences := set.IntSlice(t.Occurrences)
 	var output []string
 
@@ -93,28 +101,58 @@ func dayOfWeekSlice(s set.Interface) (results []time.Weekday) {
 }
 
 // Intersects returns true if the other Data instance intersects this instance.
-func (t Data) Intersects(other *Data) bool {
+func (t Specification) Intersects(other *Specification) bool {
 	oIntersect := !set.Intersection(t.Occurrences, other.Occurrences).IsEmpty()
 	dIntersect := !set.Intersection(t.DaysOfWeek, other.DaysOfWeek).IsEmpty()
 	return oIntersect && dIntersect
 }
 
-// New creates a new occurrence data instance.
-func New(specification string) (*Data, error) {
+func Validate(specification string, yearMode bool) error {
+	re := regexp.MustCompile(getRegex(yearMode))
+	if !re.MatchString(specification) {
+		return &e.SpecificationError{Specification: specification}
+	}
+
 	parts := strings.Split(specification, "#")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf(e.Messages[e.Err1000])
+
+	occurrences, err := toIntSet(strings.Split(parts[0], ","))
+	if err != nil {
+		return err
 	}
 
-	re := regexp.MustCompile(`^[\d,]+$`)
+	for _, ordinal := range set.IntSlice(occurrences) {
+		if ordinal < 1 {
+			return &e.OrdinalError{Type: e.Occurrence, UseYearMode: yearMode, Ordinal: ordinal}
+		}
 
-	if match := re.MatchString(parts[0]); !match {
-		return nil, fmt.Errorf(e.Messages[e.Err1001], parts[0])
+		if yearMode {
+			if ordinal > 53 { // some years can have a 53rd occurrence of a day of week
+				return &e.OrdinalError{Type: e.Occurrence, UseYearMode: yearMode, Ordinal: ordinal}
+			}
+		} else {
+			if ordinal > 5 { // usually 4 occurrences of a day of week in a month, sometimes also 5
+				return &e.OrdinalError{Type: e.Occurrence, UseYearMode: yearMode, Ordinal: ordinal}
+			}
+		}
 	}
 
-	if match := re.MatchString(parts[1]); !match {
-		return nil, fmt.Errorf(e.Messages[e.Err1002], parts[1])
+	daysOfWeek, err := toIntSet(strings.Split(parts[1], ","))
+	if err != nil {
+		return err
 	}
+
+	for _, ordinal := range set.IntSlice(daysOfWeek) {
+		if ordinal > 6 {
+			return &e.OrdinalError{Type: e.DayOfWeek, UseYearMode: yearMode, Ordinal: ordinal}
+		}
+	}
+
+	return nil
+}
+
+// New creates a new occurrence data instance.
+func New(specification string) (*Specification, error) {
+	parts := strings.Split(specification, "#")
 
 	occurrences, err := toIntSet(strings.Split(parts[0], ","))
 	if err != nil {
@@ -126,15 +164,15 @@ func New(specification string) (*Data, error) {
 		return nil, err
 	}
 
-	ds := &Data{occurrences, daysOfWeek}
+	ds := &Specification{occurrences, daysOfWeek}
 	return ds, nil
 }
 
 // NewFromDate creates a new occurrence data instance
 // from the provided date.
-func NewFromDate(date time.Time, forYear bool) *Data {
+func NewFromDate(date time.Time, yearMode bool) *Specification {
 	day := date.Day()
-	if forYear {
+	if yearMode {
 		day = date.YearDay()
 	}
 
@@ -147,7 +185,7 @@ func NewFromDate(date time.Time, forYear bool) *Data {
 	occurrences.Add(int(occOrd))
 	daysOfWeek := set.New(set.ThreadSafe)
 	daysOfWeek.Add(date.Weekday())
-	return &Data{occurrences, daysOfWeek}
+	return &Specification{occurrences, daysOfWeek}
 }
 
 func toIntSet(values []string) (set.Interface, error) {
@@ -178,7 +216,7 @@ func toWeekdaySet(values []string) (set.Interface, error) {
 		if intValue >= 0 && intValue < 7 {
 			weekdaySet.Add(time.Weekday(intValue))
 		} else {
-			return nil, fmt.Errorf(e.Messages[e.Err1003], intValue)
+			return nil, &e.OrdinalError{Type: e.DayOfWeek, UseYearMode: false, Ordinal: intValue}
 		}
 	}
 	return weekdaySet, nil
