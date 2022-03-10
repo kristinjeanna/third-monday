@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/github/license/kristinjeanna/third-monday.svg?style=flat)](https://github.com/kristinjeanna/third-monday/blob/main/LICENSE) ![go.mod Go version](https://img.shields.io/github/go-mod/go-version/kristinjeanna/third-monday)
 
-A tool to facilitate working with relative dates such as "third Monday of the month", "tenth Wednesday of the year", etc.
+A tool to facilitate working with relative dates in cronjobs such as "third Monday of the month", "tenth Wednesday of the year", etc.
 
 This tool was born of a need I had to run a cron job on the third Monday of every month. Crontab syntax does not allow for this, hence the creation of a utility that I could include in the crontab to only run a desired command if `third-monday` returned an exit code of 0, based on a provided date specification.
 
