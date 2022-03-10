@@ -22,7 +22,7 @@ Note that the second date specification returned a non-zero exit code since Frid
 
 ## Date specification
 
-The date specification consists of two parts separated by a "#" symbol. The first part indicates "first", "second", "third", etc. and corresponds to ordinals returned by the [`time#Time.Day()`]([https://link](https://pkg.go.dev/time#Time.Day)) function (or by the [`time#Time.YearDay()`]([https://link](https://pkg.go.dev/time#Time.YearDay)) function if the `--year` flag is specified). The second part indicates the day of the week: "Monday", "Tuesday", "Wednesday", etc. and corresponds to ordinals returned by the [`time#Time.Weekday()`]([https://link](https://pkg.go.dev/time#Time.Weekday)) function.
+The date specification consists of two parts separated by a "#" symbol. The first part indicates "first", "second", "third", etc. and corresponds to ordinals returned by the [`time#Time.Day()`]([https://link](https://pkg.go.dev/time#Time.Day)) function (or, if the `--year` flag is specified, by the [`time#Time.YearDay()`]([https://link](https://pkg.go.dev/time#Time.YearDay)) function modulo 7). The second part indicates the day of the week: "Monday", "Tuesday", "Wednesday", etc. and corresponds to ordinals returned by the [`time#Time.Weekday()`]([https://link](https://pkg.go.dev/time#Time.Weekday)) function.
 
 Each part of the date specification may possess more than one ordinal. A list of ordinals consists of ordinals separated by commas. Examples:
 
