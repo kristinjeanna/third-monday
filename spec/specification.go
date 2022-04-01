@@ -41,12 +41,13 @@ var (
 	}
 )
 
-// Data contains occurrence information.
+// Specification contains occurrence information.
 type Specification struct {
 	Occurrences set.Interface
 	DaysOfWeek  set.Interface
 }
 
+// FriendlyStrings provides more human-readable output about a Specification.
 func (t Specification) FriendlyStrings(yearMode bool) (results []string) {
 	occurrences := set.IntSlice(t.Occurrences)
 	sort.Ints(occurrences)
@@ -67,7 +68,7 @@ func (t Specification) FriendlyStrings(yearMode bool) (results []string) {
 	return results
 }
 
-// Specification returns a string representation of the Occurrences structure.
+// String returns a string representation of the Occurrences structure.
 func (t Specification) String() string {
 	occurrences := set.IntSlice(t.Occurrences)
 	var output []string
